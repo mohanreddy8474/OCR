@@ -1,0 +1,77 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Upload and OCR</title>
+</head>
+<body>
+    <h1>Image Upload and OCR</h1>
+    <input type="file" id="fileInput" accept="image/*">
+    <button id="processButton">Upload</button>
+    <div id="notification-area"></div>
+    <div id="result-area"></div>
+    
+    <script>
+        let socket;
+
+        document.getElementById('processButton').addEventListener('click', function() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Please select a file first.');
+                return;
+            }
+
+            // Clear previous notifications and results
+            document.getElementById("notification-area").innerHTML = '';
+            document.getElementById("result-area").innerHTML = '';
+
+            // Close existing WebSocket connection if any
+            if (socket) {
+                socket.close();
+            }
+
+            // Create new WebSocket connection
+            socket = new WebSocket("ws://localhost:8000/ws");
+            
+            socket.onopen = function(event) {
+                console.log("WebSocket connection opened");
+                uploadAndProcess(file);
+            };
+
+            socket.onmessage = function(event) {
+                const message = event.data;
+                // Display the notification on the UI
+                const notificationArea = document.getElementById("notification-area");
+                const notification = document.createElement("p");
+                notification.textContent = message;
+                notificationArea.appendChild(notification);
+            };
+            
+            socket.onclose = function(event) {
+                console.log("WebSocket connection closed");
+            };
+        });
+
+        function uploadAndProcess(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultArea = document.getElementById("result-area");
+                resultArea.innerHTML = '<h2>Extracted Text:</h2><p>' + data.text + '</p>';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
