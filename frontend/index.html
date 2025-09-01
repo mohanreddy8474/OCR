@@ -3,74 +3,620 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Image Upload and OCR</title>
+    <title>Improved OCR Application</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .main-content {
+            padding: 30px;
+        }
+        
+        .upload-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .upload-area {
+            border: 3px dashed #ddd;
+            border-radius: 15px;
+            padding: 40px;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+        
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+            transform: translateY(-2px);
+        }
+        
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: #e8f2ff;
+            transform: scale(1.02);
+        }
+        
+        .upload-area h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .upload-area p {
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .options-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+        
+        .options-section h3 {
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+        
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .option-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .option-group label {
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        .option-group select,
+        .option-group input[type="checkbox"] {
+            padding: 10px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .option-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+        
+        .process-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin: 20px 0;
+        }
+        
+        .process-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .process-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status-section {
+            background: #e8f4fd;
+            border: 1px solid #bee5eb;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .status-section h3 {
+            color: #0c5460;
+            margin-bottom: 15px;
+        }
+        
+        .status-message {
+            color: #0c5460;
+            font-weight: 500;
+        }
+        
+        .result-section {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .result-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .extracted-text {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .copy-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .copy-btn:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Image Upload and OCR</h1>
-    <input type="file" id="fileInput" accept="image/*">
-    <button id="processButton">Upload</button>
-    <div id="notification-area"></div>
-    <div id="result-area"></div>
-    
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Improved OCR Application</h1>
+            <p>Extract text from images with advanced preprocessing and multiple language support</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="upload-section">
+                <div class="upload-area" id="uploadArea">
+                    <h3>📁 Click to Upload Image</h3>
+                    <p>or drag and drop your image here</p>
+                    <p><small>Supported formats: JPG, PNG, BMP, TIFF, GIF</small></p>
+                </div>
+                
+                <input type="file" id="fileInput" class="file-input" accept="image/*">
+            </div>
+            
+            <div class="options-section">
+                <h3>⚙️ Processing Options</h3>
+                <div class="options-grid">
+                    <div class="option-group">
+                        <label for="languageSelect">Language</label>
+                        <select id="languageSelect">
+                            <option value="eng">English</option>
+                            <option value="fra">French</option>
+                            <option value="deu">German</option>
+                            <option value="spa">Spanish</option>
+                            <option value="ita">Italian</option>
+                            <option value="por">Portuguese</option>
+                            <option value="rus">Russian</option>
+                        </select>
+                    </div>
+                    
+                    <div class="option-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enhanceContrast" checked>
+                            <label for="enhanceContrast">Enhance Contrast</label>
+                        </div>
+                    </div>
+                    
+                    <div class="option-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="removeNoise" checked>
+                            <label for="removeNoise">Remove Noise</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="process-btn" id="processBtn" disabled>
+                🔍 Process Image
+            </button>
+            
+            <div class="status-section" id="statusSection">
+                <h3>📊 Processing Status</h3>
+                <div class="status-message" id="statusMessage">Ready to process</div>
+            </div>
+            
+            <div class="result-section" id="resultSection">
+                <h3>📝 Extracted Text</h3>
+                
+                <div class="stats-grid" id="statsGrid"></div>
+                
+                <div class="extracted-text" id="extractedText"></div>
+                
+                <button class="copy-btn" id="copyBtn">
+                    📋 Copy to Clipboard
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let socket;
+        let selectedFile = null;
+        let currentResult = null;
 
-        document.getElementById('processButton').addEventListener('click', function() {
-            const fileInput = document.getElementById('fileInput');
-            const file = fileInput.files[0];
-
-            if (!file) {
-                alert('Please select a file first.');
-                return;
-            }
-
-            // Clear previous notifications and results
-            document.getElementById("notification-area").innerHTML = '';
-            document.getElementById("result-area").innerHTML = '';
-
-            // Close existing WebSocket connection if any
-            if (socket) {
-                socket.close();
-            }
-
-            // Create new WebSocket connection
-            socket = new WebSocket("ws://localhost:8000/ws");
-            
-            socket.onopen = function(event) {
-                console.log("WebSocket connection opened");
-                uploadAndProcess(file);
-            };
-
-            socket.onmessage = function(event) {
-                const message = event.data;
-                // Display the notification on the UI
-                const notificationArea = document.getElementById("notification-area");
-                const notification = document.createElement("p");
-                notification.textContent = message;
-                notificationArea.appendChild(notification);
-            };
-            
-            socket.onclose = function(event) {
-                console.log("WebSocket connection closed");
-            };
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
         });
 
-        function uploadAndProcess(file) {
-            const formData = new FormData();
-            formData.append('file', file);
+        function initializeApp() {
+            // File input handling
+            document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+            
+            // Upload area click
+            document.getElementById('uploadArea').addEventListener('click', () => {
+                document.getElementById('fileInput').click();
+            });
+            
+            // Drag and drop
+            setupDragAndDrop();
+            
+            // Process button
+            document.getElementById('processBtn').addEventListener('click', processImage);
+            
+            // Copy button
+            document.getElementById('copyBtn').addEventListener('click', copyToClipboard);
+            
+            // Load available languages
+            loadLanguages();
+        }
 
+        function setupDragAndDrop() {
+            const uploadArea = document.getElementById('uploadArea');
+            
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    document.getElementById('fileInput').files = files;
+                    handleFileSelect({ target: { files: files } });
+                }
+            });
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                selectedFile = file;
+                document.getElementById('processBtn').disabled = false;
+                showStatus('File selected: ' + file.name);
+                
+                // Update upload area
+                const uploadArea = document.getElementById('uploadArea');
+                uploadArea.innerHTML = `
+                    <h3>📁 ${file.name}</h3>
+                    <p>Size: ${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                    <p><small>Click to change file</small></p>
+                `;
+            }
+        }
+
+        async function loadLanguages() {
+            try {
+                const response = await fetch('/api/languages');
+                const data = await response.json();
+                
+                const languageSelect = document.getElementById('languageSelect');
+                languageSelect.innerHTML = '';
+                
+                data.languages.forEach(lang => {
+                    const option = document.createElement('option');
+                    option.value = lang;
+                    option.textContent = getLanguageName(lang);
+                    languageSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.log('Could not load languages, using defaults');
+            }
+        }
+
+        function getLanguageName(code) {
+            const languages = {
+                'eng': 'English',
+                'fra': 'French',
+                'deu': 'German',
+                'spa': 'Spanish',
+                'ita': 'Italian',
+                'por': 'Portuguese',
+                'rus': 'Russian'
+            };
+            return languages[code] || code;
+        }
+
+        function processImage() {
+            if (!selectedFile) {
+                showStatus('Please select a file first!', 'error');
+                return;
+            }
+            
+            showStatus('Processing image...', 'processing');
+            document.getElementById('processBtn').disabled = true;
+            document.getElementById('resultSection').style.display = 'none';
+            
+            // Connect WebSocket
+            connectWebSocket();
+            
+            // Prepare form data
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('language', document.getElementById('languageSelect').value);
+            formData.append('enhance_contrast', document.getElementById('enhanceContrast').checked);
+            formData.append('remove_noise', document.getElementById('removeNoise').checked);
+            
+            // Upload and process
             fetch('/upload', {
                 method: 'POST',
                 body: formData
             })
             .then(response => response.json())
             .then(data => {
-                const resultArea = document.getElementById("result-area");
-                resultArea.innerHTML = '<h2>Extracted Text:</h2><p>' + data.text + '</p>';
+                showResult(data);
+                showStatus('Processing completed successfully!', 'success');
+                document.getElementById('processBtn').disabled = false;
             })
             .catch(error => {
                 console.error('Error:', error);
+                showStatus('Error processing image: ' + error.message, 'error');
+                document.getElementById('processBtn').disabled = false;
             });
+        }
+
+        function showStatus(message, type = 'info') {
+            const statusSection = document.getElementById('statusSection');
+            const statusMessage = document.getElementById('statusMessage');
+            
+            statusSection.style.display = 'block';
+            
+            let icon = '📊';
+            let bgColor = '#e8f4fd';
+            let borderColor = '#bee5eb';
+            let textColor = '#0c5460';
+            
+            if (type === 'error') {
+                icon = '❌';
+                bgColor = '#f8d7da';
+                borderColor = '#f5c6cb';
+                textColor = '#721c24';
+            } else if (type === 'success') {
+                icon = '✅';
+                bgColor = '#d4edda';
+                borderColor = '#c3e6cb';
+                textColor = '#155724';
+            } else if (type === 'processing') {
+                icon = '⏳';
+                bgColor = '#fff3cd';
+                borderColor = '#ffeaa7';
+                textColor = '#856404';
+            }
+            
+            statusSection.style.background = bgColor;
+            statusSection.style.borderColor = borderColor;
+            statusMessage.style.color = textColor;
+            statusMessage.innerHTML = `${icon} ${message}`;
+        }
+
+        function showResult(data) {
+            currentResult = data;
+            
+            // Show stats
+            const statsGrid = document.getElementById('statsGrid');
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${data.stats.characters}</div>
+                    <div class="stat-label">Characters</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${data.stats.words}</div>
+                    <div class="stat-label">Words</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${data.stats.lines}</div>
+                    <div class="stat-label">Lines</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${data.language.toUpperCase()}</div>
+                    <div class="stat-label">Language</div>
+                </div>
+            `;
+            
+            // Show extracted text
+            document.getElementById('extractedText').textContent = data.text || 'No text extracted';
+            
+            // Show result section
+            document.getElementById('resultSection').style.display = 'block';
+            
+            // Scroll to result
+            document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function copyToClipboard() {
+            if (!currentResult || !currentResult.text) {
+                showStatus('No text to copy!', 'error');
+                return;
+            }
+            
+            try {
+                await navigator.clipboard.writeText(currentResult.text);
+                showStatus('Text copied to clipboard!', 'success');
+            } catch (error) {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = currentResult.text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showStatus('Text copied to clipboard!', 'success');
+            }
+        }
+
+        function connectWebSocket() {
+            socket = new WebSocket('ws://localhost:8000/ws');
+            
+            socket.onopen = function(event) {
+                console.log('WebSocket connected');
+            };
+            
+            socket.onmessage = function(event) {
+                showStatus(event.data, 'processing');
+            };
+            
+            socket.onclose = function(event) {
+                console.log('WebSocket disconnected');
+            };
         }
     </script>
 </body>
